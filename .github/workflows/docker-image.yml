@@ -36,6 +36,14 @@ jobs:
         echo "::set-output name=branch_name::$BRANCH_NAME"
         echo "::set-output name=short_sha::$SHORT_SHA"
 
+    - name: Cache Docker layers
+      uses: actions/cache@v3
+      with:
+        path: /tmp/.buildx-cache
+        key: ${{ runner.os }}-buildx-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-buildx-
+
     - name: Build and Push Docker image
       uses: docker/build-push-action@v2
       with:
@@ -43,7 +51,15 @@ jobs:
         file: ./Dockerfile
         platforms: linux/amd64,linux/arm64
         push: true
+        cache-from: type=local,src=/tmp/.buildx-cache
+        cache-to: type=local,dest=/tmp/.buildx-cache-new
         tags: |
           ghcr.io/${{ github.repository_owner }}/${{ steps.prep.outputs.repo_name }}:${{ steps.prep.outputs.branch_name }}
           ghcr.io/${{ github.repository_owner }}/${{ steps.prep.outputs.repo_name }}:${{ steps.prep.outputs.short_sha }}
           ghcr.io/${{ github.repository_owner }}/${{ steps.prep.outputs.repo_name }}:latest
+
+    - name: Move cache
+      if: always()
+      run: |
+        rm -rf /tmp/.buildx-cache
+        mv /tmp/.buildx-cache-new /tmp/.buildx-cache
