@@ -1,8 +1,9 @@
 FROM ubuntu:latest
 
 RUN apt-get update && \
-    apt-get install -y postfix mailutils libsasl2-modules
+    apt-get install -y postfix mailutils libsasl2-modules rsyslog
 
-# COPY postfix/main.cf /etc/postfix/main.cf
+COPY postfix/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
-CMD ["postfix", "start-fg"]
+CMD ["/usr/local/bin/entrypoint.sh"]
