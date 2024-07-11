@@ -3,6 +3,10 @@
 # Start rsyslog
 rsyslogd
 
+# Postmap the configuration files
+postmap /etc/postfix/sasl_passwd
+postmap /etc/postfix/sender_canonical
+
 # Start postfix
 postfix start
 
